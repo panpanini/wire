@@ -1,0 +1,23 @@
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'java-gradle-plugin'
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
+gradlePlugin {
+  plugins {
+    wire {
+      id = 'com.squareup.wire'
+      implementationClass = 'com.squareup.wire.gradle.WirePlugin'
+    }
+  }
+}
+
+dependencies {
+  implementation project(':wire-compiler')
+  implementation deps.kotlin.stdlib.jdk8
+
+  compileOnly gradleApi()
+  implementation deps.plugins.kotlin
+  implementation deps.plugins.android
+}

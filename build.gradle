@@ -85,6 +85,7 @@ allprojects {
   version = VERSION_NAME
 
   repositories {
+    google()
     mavenCentral()
   }
 }
@@ -112,3 +113,43 @@ subprojects { project ->
 }
 
 apply from: 'gen-tests.gradle'
+
+tasks {
+  def runtime = tasks.register("installRuntimeToMavenLocal", GradleBuild.class) {
+    dir = file("wire-runtime")
+    tasks = ["installArchives"]
+  }
+
+  def schema = tasks.register("installSchemaToMavenLocal", GradleBuild.class) {
+    dir = file("wire-schema")
+    tasks = ["installArchives"]
+  }
+
+  def javagen = tasks.register("installJavaGeneratorToMavenLocal", GradleBuild.class) {
+    dir = file("wire-java-generator")
+    tasks = ["installArchives"]
+  }
+
+  def kotlingen = tasks.register("installKotlinGeneratorToMavenLocal", GradleBuild.class) {
+    dir = file("wire-kotlin-generator")
+    tasks = ["installArchives"]
+  }
+
+  def compiler = tasks.register("installCompilerToMavenLocal", GradleBuild.class) {
+    dir = file("wire-compiler")
+    tasks = ["installArchives"]
+    dependsOn(runtime, schema, javagen, kotlingen)
+  }
+
+  def plugin = tasks.register("installPluginToMavenLocal", GradleBuild.class) {
+    dir = file("wire-gradle-plugin")
+    tasks = ["installArchives"]
+    dependsOn(compiler)
+  }
+
+  tasks.register("assembleSample", GradleBuild.class) {
+    dir = file("sample")
+    tasks = ["assemble"]
+    dependsOn(plugin)
+  }
+}
