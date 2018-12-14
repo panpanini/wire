@@ -1,0 +1,60 @@
+buildscript {
+  dependencies {
+    classpath "com.squareup.wire:wire-gradle-plugin:2.3.0-SNAPSHOT"
+    // figure out how to use local plugin in current sample module
+    classpath "com.android.tools.build:gradle:3.2.1"
+  }
+
+  repositories {
+    google()
+    mavenCentral()
+    mavenLocal()
+  }
+}
+
+repositories {
+  google()
+  mavenCentral()
+  mavenLocal()
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'com.squareup.wire'
+
+android {
+  compileSdkVersion 28
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  defaultConfig {
+    minSdkVersion 28
+    targetSdkVersion 28
+    applicationId 'com.squareup.dinosaurs'
+  }
+}
+
+dependencies {
+  implementation "com.squareup.wire:wire-runtime:2.3.0-SNAPSHOT"
+}
+
+wire {
+  sourcePaths = ['src/main/proto']
+
+  // Keeps 'name' as the only field in 'Dinosaur'
+  // roots = ['squareup.dinosaurs.Dinosaur#name']
+
+  // Keeps all fields, except 'name', in 'Dinosaur'
+  // prunes = ['squareup.dinosaurs.Dinosaur#name']
+
+  // Both roots and prunes in an external file
+  // rules file("rules.txt")
+
+  sourcePaths2 'com.squareup.protos:all-protos:[20181215.172331,)'
+  sourcePaths2 'com.squareup.protos:all-protos:[20181215.172331,)'
+  javaTarget {
+    outDirectory = "${buildDir}/generated/src/java"
+  }
+}

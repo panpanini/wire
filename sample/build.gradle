@@ -1,8 +1,26 @@
-ext {
-  generatedSourcesDir = "${buildDir}/generated/src/java"
+buildscript {
+  dependencies {
+    // figure out how to use local plugin in current sample module
+    classpath "com.squareup.wire:wire-gradle-plugin:2.3.0-SNAPSHOT"
+  }
+
+  repositories {
+    google()
+    mavenCentral()
+    mavenLocal()
+  }
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  maven {
+    url 'https://maven.global.square/artifactory/square-public'
+  }
 }
 
 apply plugin: 'application'
+apply plugin: 'com.squareup.wire'
 
 mainClassName = 'com.squareup.dinosaurs.Sample'
 
@@ -15,26 +33,34 @@ jar {
   }
 }
 
-configurations {
-  wire
-}
-
 dependencies {
-  wire project(':wire-compiler')
-  implementation project(':wire-runtime')
-  implementation deps.okio
+  implementation "com.squareup.wire:wire-runtime:2.3.0-SNAPSHOT"
 }
 
-task generateProtos(type: JavaExec) {
-  classpath = configurations.wire
-  main = 'com.squareup.wire.WireCompiler'
-  args = [
-      '--proto_path=src/main/proto',
-      "--java_out=$generatedSourcesDir"
-  ]
-}
+wire {
+//  sourcePath 'com.squareup.protos:all-protos:[20181215.172331,)'
+  sourcePath files('src/main/proto')
+//  sourcePath files(
+//      'src/main/proto/squareup/dinosaurs/dinosaur.proto',
+//      'src/main/proto/squareup/geology/period.proto',
+//  )
 
-compileJava {
-  dependsOn generateProtos
-  source generatedSourcesDir
+  // Keeps 'name' as the only field in 'Dinosaur'
+  // roots = ['squareup.dinosaurs.Dinosaur#name']
+
+  // Keeps all fields, except 'name', in 'Dinosaur'
+  // prunes = ['squareup.dinosaurs.Dinosaur#name']
+
+//  prunes = [
+//      "vitess.*",
+//      "squareup.tracon.*",
+//      "squareup.privacyvault.service.*"
+//  ]
+
+  // Both roots and prunes in an external file
+  // rules file("rules.txt")
+
+  java {
+    outDirectory = "${buildDir}/generated/src/main/java"
+  }
 }
