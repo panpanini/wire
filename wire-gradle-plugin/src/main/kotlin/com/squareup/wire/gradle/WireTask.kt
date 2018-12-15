@@ -30,15 +30,32 @@ open class WireTask : SourceTask() {
   lateinit var protoPaths: List<String>
   lateinit var roots: List<String>
   lateinit var prunes: List<String>
+  lateinit var rules: File
   lateinit var targets: List<Target>
 
   @TaskAction
   fun generateWireFiles() {
+    val includes = mutableListOf<String>()
+    val excludes = mutableListOf<String>()
+
+    rules.forEachLine {
+      when (it.firstOrNull()) {
+        '+' -> includes.add(it.substring(1))
+        '-' -> excludes.add(it.substring(1))
+        else -> Unit
+      }
+    }
+
+    if (includes.isNotEmpty()) println("INCLUDE:\n * ${includes.joinToString(separator = "\n * ")}")
+    if (excludes.isNotEmpty()) println("EXCLUDE:\n * ${excludes.joinToString(separator = "\n * ")}")
+    if (includes.isEmpty() && excludes.isEmpty()) println("NO INCLUDES OR EXCLUDES")
+    println()
+
     val wireRun = WireRun(
         sourcePath = sourcePaths,
         protoPath = protoPaths,
-        treeShakingRoots = roots,
-        treeShakingRubbish = prunes,
+        treeShakingRoots = if (roots.isEmpty()) includes else roots,
+        treeShakingRubbish = if (prunes.isEmpty()) excludes else prunes,
         targets = targets
     )
 

@@ -88,6 +88,7 @@ class WirePlugin : Plugin<Project> {
         it.protoPaths = protoPaths
         it.roots = extension.roots?.asList() ?: emptyList()
         it.prunes = extension.prunes?.asList() ?: emptyList()
+        it.rules = extension.rules
         it.targets = targets
         it.group = "wire"
         it.description = "Generate Wire protocol buffer implementation for .proto files"

@@ -43,6 +43,9 @@ wire {
   // Keeps all fields, except 'name', in 'Dinosaur'
   // prunes = ['squareup.dinosaurs.Dinosaur#name']
 
+  // Both roots and prunes in an external file
+  // rules file("rules.txt")
+
   javaTarget {
     outDirectory = "${buildDir}/generated/src/java"
   }

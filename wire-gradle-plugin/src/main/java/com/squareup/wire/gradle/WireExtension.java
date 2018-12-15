@@ -15,6 +15,7 @@
  */
 package com.squareup.wire.gradle;
 
+import java.io.File;
 import java.util.List;
 import javax.inject.Inject;
 import org.gradle.api.Action;
@@ -31,6 +32,7 @@ public class WireExtension {
   private String[] protoPaths;
   private String[] roots;
   private String[] prunes;
+  private File rules;
   private JavaTarget javaTarget;
   private KotlinTarget kotlinTarget;
 
@@ -87,6 +89,16 @@ public class WireExtension {
 
   public void setPrunes(String[] prunes) {
     this.prunes = prunes;
+  }
+
+  @Input
+  @Optional
+  public File getRules() {
+    return rules;
+  }
+
+  public void setRules(File rules) {
+    this.rules = rules;
   }
 
   @Input
