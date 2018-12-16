@@ -46,6 +46,8 @@ wire {
   // Both roots and prunes in an external file
   // rules file("rules.txt")
 
+  sourcePaths2 'com.squareup.protos:all-protos:[20181215.172331,)'
+  sourcePaths2 'com.squareup.protos:all-protos:[20181215.172331,)'
   javaTarget {
     outDirectory = "${buildDir}/generated/src/java"
   }

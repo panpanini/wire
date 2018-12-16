@@ -29,6 +29,7 @@ import org.gradle.api.tasks.Optional;
 public class WireExtension {
   private FileCollection sourceSets;
   private String[] sourcePaths;
+  private String[] sourcePaths2;
   private String[] protoPaths;
   private String[] roots;
   private String[] prunes;
@@ -59,6 +60,15 @@ public class WireExtension {
 
   public void setSourcePaths(String[] sourcePaths) {
     this.sourcePaths = sourcePaths;
+  }
+
+  @InputFiles
+  public String[] getSourcePaths2() {
+    return sourcePaths2;
+  }
+
+  public void setSourcePaths2(String[] sourcePaths) {
+    this.sourcePaths2 = sourcePaths;
   }
 
   @InputFiles

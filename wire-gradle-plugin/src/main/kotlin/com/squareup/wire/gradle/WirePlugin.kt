@@ -78,6 +78,12 @@ class WirePlugin : Plugin<Project> {
           .map { path -> "${project.rootDir}/$path" }
       val protoPaths = extension.protoPaths?.asList() ?: sourcePaths
 
+      val sourceDeps = project.configurations.create("wireSource").dependencies
+
+      extension.sourcePaths2.forEach {
+        sourceDeps.add(project.dependencies.create(it))
+      }
+
       val targets = mutableListOf<Target>()
       val defaultBuildDirectory = "${project.buildDir}/generated/src/java"
       val outDirs = mutableListOf<String>()
