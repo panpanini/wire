@@ -15,14 +15,18 @@
  */
 package com.squareup.wire.gradle
 
-import com.android.build.gradle.BasePlugin
+import com.android.build.gradle.AppExtension
+import com.android.build.gradle.LibraryExtension
+import com.android.build.gradle.api.BaseVariant
 import com.squareup.wire.schema.Target
+import org.gradle.api.DomainObjectSet
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.plugin.KotlinBasePluginWrapper
+import com.android.build.gradle.BasePlugin as AndroidBasePlugin
 
 class WirePlugin : Plugin<Project> {
   override fun apply(project: Project) {
@@ -33,12 +37,9 @@ class WirePlugin : Plugin<Project> {
     var java = false
 
     project.plugins.all {
+      println("JROD: $it")
       when (it) {
-        is KotlinBasePluginWrapper -> {
-          kotlin = true
-          println("has kotlin")
-        }
-        is BasePlugin<*> -> {
+        is AndroidBasePlugin<*> -> {
           android = true
           println("has android")
         }
@@ -46,10 +47,32 @@ class WirePlugin : Plugin<Project> {
           java = true
           println("has java")
         }
+        is KotlinBasePluginWrapper -> {
+          kotlin = true
+          println("has kotlin")
+        }
       }
     }
 
+    if (!android && !kotlin && !java) {
+      throw IllegalArgumentException(
+          "The Wire Gradle plugin requires either the Java, Kotlin or Android plugin to be applied prior to its being applied."
+      )
+    }
+
     project.afterEvaluate { project ->
+      if (android) {
+        applyAndroid(project, extension)
+        return@afterEvaluate
+      }
+
+      if (kotlin) {
+        applyKotlin()
+        return@afterEvaluate
+      }
+
+      // TODO: what follows => applyJava()
+
       val sourceSets = extension.sourceSets ?: project.files("src/main/proto")
       val sourcePaths = extension.sourcePaths.asList()
           .map { path -> "${project.rootDir}/$path" }
@@ -101,5 +124,46 @@ class WirePlugin : Plugin<Project> {
         it.dependsOn(task)
       }
     }
+  }
+
+  private fun applyAndroid(project: Project, extension: WireExtension) {
+    val variants: DomainObjectSet<out BaseVariant> = when {
+      project.plugins.hasPlugin("com.android.application") -> {
+        project.extensions.getByType(AppExtension::class.java).applicationVariants
+      }
+      project.plugins.hasPlugin("com.android.library") -> {
+        project.extensions.getByType(LibraryExtension::class.java).libraryVariants
+      }
+      else -> {
+        throw IllegalStateException("Unknown Android plugin in project '${project.path}'")
+      }
+    }
+
+    applyAndroid(project, extension, variants)
+  }
+
+  private fun applyAndroid(
+    project: Project,
+    extension: WireExtension,
+    variants: DomainObjectSet<out BaseVariant>
+  ) {
+    variants.all {
+      val taskName = "generate${it.name.capitalize()}Protos"
+      val taskProvider = project.tasks.register(taskName, WireTask::class.java) {
+        it.group = "wire"
+        it.description = "Generate Wire protocol buffer implementation for .proto files"
+      }
+      // TODO Use task configuration avoidance once released. https://issuetracker.google.com/issues/117343589
+      //it.registerJavaGeneratingTask(taskProvider.get(), taskProvider.get().outputDirectory)
+    }
+  }
+
+  private fun applyJava() {
+    TODO("not implemented")
+  }
+
+  private fun applyKotlin() {
+    TODO(
+        "not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 }

@@ -152,4 +152,10 @@ tasks {
     tasks = ["assemble"]
     dependsOn(plugin)
   }
+
+  tasks.register("assembleAndroidSample", GradleBuild.class) {
+    dir = file("sample-android")
+    tasks = ["assembleDebug"]
+    dependsOn(plugin)
+  }
 }
