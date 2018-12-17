@@ -30,7 +30,7 @@ open class WireTask : SourceTask() {
   lateinit var protoPaths: List<String>
   lateinit var roots: List<String>
   lateinit var prunes: List<String>
-  lateinit var rules: File
+  var rules: File? = null
   lateinit var targets: List<Target>
 
   @TaskAction
@@ -38,7 +38,7 @@ open class WireTask : SourceTask() {
     val includes = mutableListOf<String>()
     val excludes = mutableListOf<String>()
 
-    rules.forEachLine {
+    rules?.forEachLine {
       when (it.firstOrNull()) {
         '+' -> includes.add(it.substring(1))
         '-' -> excludes.add(it.substring(1))
@@ -50,6 +50,10 @@ open class WireTask : SourceTask() {
     if (excludes.isNotEmpty()) println("EXCLUDE:\n * ${excludes.joinToString(separator = "\n * ")}")
     if (includes.isEmpty() && excludes.isEmpty()) println("NO INCLUDES OR EXCLUDES")
     println()
+
+    println("sourcePaths: $sourcePaths")
+    println("protoPaths: $protoPaths")
+    println("targets: $targets")
 
     val wireRun = WireRun(
         sourcePath = sourcePaths,

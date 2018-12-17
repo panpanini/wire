@@ -23,9 +23,11 @@ import org.gradle.api.DomainObjectSet
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.plugin.KotlinBasePluginWrapper
+import java.io.File
 import com.android.build.gradle.BasePlugin as AndroidBasePlugin
 
 class WirePlugin : Plugin<Project> {
@@ -37,7 +39,7 @@ class WirePlugin : Plugin<Project> {
     var java = false
 
     project.plugins.all {
-      println("JROD: $it")
+      println("plugin: $it")
       when (it) {
         is AndroidBasePlugin<*> -> {
           android = true
@@ -61,73 +63,16 @@ class WirePlugin : Plugin<Project> {
     }
 
     project.afterEvaluate { project ->
-      if (android) {
-        applyAndroid(project, extension)
-        return@afterEvaluate
+      val ssc = project.property("sourceSets") as SourceSetContainer
+      ssc.forEach {
+        println("source set: ${it.name}")
       }
 
-      if (kotlin) {
-        applyKotlin()
-        return@afterEvaluate
-      }
-
-      // TODO: what follows => applyJava()
-
-      val sourceSets = extension.sourceSets ?: project.files("src/main/proto")
-      val sourcePaths = extension.sourcePaths.asList()
-          .map { path -> "${project.rootDir}/$path" }
-      val protoPaths = extension.protoPaths?.asList() ?: sourcePaths
-
-      val sourceDeps = project.configurations.create("wireSource").dependencies
-
-      extension.sourcePaths2.forEach {
-        sourceDeps.add(project.dependencies.create(it))
-      }
-
-      val targets = mutableListOf<Target>()
-      val defaultBuildDirectory = "${project.buildDir}/generated/src/java"
-      val outDirs = mutableListOf<String>()
-
-      extension.javaTarget?.let { it ->
-        val javaOut = it.outDirectory ?: defaultBuildDirectory
-        outDirs += javaOut
-        targets += Target.JavaTarget(
-            elements = it.elements ?: listOf("*"),
-            outDirectory = javaOut,
-            android = it.android,
-            androidAnnotations = it.androidAnnotations,
-            compact = it.compact
-        )
-      }
-      extension.kotlinTarget?.let { it ->
-        val kotlinOut = it.outDirectory ?: defaultBuildDirectory
-        outDirs += kotlinOut
-        targets += Target.KotlinTarget(
-            elements = it.elements ?: listOf("*"),
-            outDirectory = kotlinOut,
-            android = it.android,
-            javaInterop = it.javaInterop
-        )
-      }
-
-      val task = project.tasks.register("doWire", WireTask::class.java) {
-        it.sourceFolders = sourceSets.files
-        it.source(sourceSets)
-        it.sourcePaths = sourcePaths
-        it.protoPaths = protoPaths
-        it.roots = extension.roots?.asList() ?: emptyList()
-        it.prunes = extension.prunes?.asList() ?: emptyList()
-        it.rules = extension.rules
-        it.targets = targets
-        it.group = "wire"
-        it.description = "Generate Wire protocol buffer implementation for .proto files"
-      }
-
-      //project.tasks.named("compileKotlin").configure{ it.dependsOn(task) }
-      val compileTask = project.tasks.named("compileJava") as TaskProvider<JavaCompile>
-      compileTask.configure {
-        it.setSource(outDirs)
-        it.dependsOn(task)
+      when {
+        android -> applyAndroid(project, extension)
+        kotlin -> applyKotlin()
+        java -> applyJava(project, extension)
+        else -> throw IllegalStateException("Impossible")
       }
     }
   }
@@ -154,18 +99,119 @@ class WirePlugin : Plugin<Project> {
     variants: DomainObjectSet<out BaseVariant>
   ) {
     variants.all {
+      println("variant: ${it.name}")
+
+      val sourceSets = extension.sourceSets ?: project.files("src/main/proto")
+      val sourcePaths = extension.sourcePaths.asList()
+          .map { path -> "${project.rootDir}/$path" }
+      val protoPaths = extension.protoPaths?.asList() ?: sourcePaths
+
+      val targets = mutableListOf<Target>()
+      val defaultBuildDirectory = "${project.buildDir}/generated/source/wire"
+      val outDirs = mutableListOf<String>()
+
+      extension.javaTarget?.let { it ->
+        val javaOut = it.outDirectory ?: defaultBuildDirectory
+        outDirs += javaOut
+        targets += Target.JavaTarget(
+            elements = it.elements ?: listOf("*"),
+            outDirectory = javaOut,
+            android = it.android,
+            androidAnnotations = it.androidAnnotations,
+            compact = it.compact
+        )
+      }
+      extension.kotlinTarget?.let { it ->
+        val kotlinOut = it.outDirectory ?: defaultBuildDirectory
+        outDirs += kotlinOut
+        targets += Target.KotlinTarget(
+            elements = it.elements ?: listOf("*"),
+            outDirectory = kotlinOut,
+            android = it.android,
+            javaInterop = it.javaInterop
+        )
+      }
+
       val taskName = "generate${it.name.capitalize()}Protos"
       val taskProvider = project.tasks.register(taskName, WireTask::class.java) {
+        it.sourceFolders = sourceSets.files
+        it.source(sourceSets)
+        it.sourcePaths = sourcePaths
+        it.protoPaths = protoPaths
+        it.roots = extension.roots?.asList() ?: emptyList()
+        it.prunes = extension.prunes?.asList() ?: emptyList()
+        it.rules = extension.rules
+        it.targets = targets
         it.group = "wire"
         it.description = "Generate Wire protocol buffer implementation for .proto files"
       }
       // TODO Use task configuration avoidance once released. https://issuetracker.google.com/issues/117343589
-      //it.registerJavaGeneratingTask(taskProvider.get(), taskProvider.get().outputDirectory)
+      val map = outDirs.map(::File)
+      println("map: $map")
+      it.registerJavaGeneratingTask(taskProvider.get(), map)
     }
   }
 
-  private fun applyJava() {
-    TODO("not implemented")
+  private fun applyJava(
+    project: Project,
+    extension: WireExtension
+  ) {
+    val sourceSets = extension.sourceSets ?: project.files("src/main/proto")
+    val sourcePaths = extension.sourcePaths.asList()
+        .map { path -> "${project.rootDir}/$path" }
+    val protoPaths = extension.protoPaths?.asList() ?: sourcePaths
+
+    val sourceDeps = project.configurations.create("wireSource").dependencies
+
+    extension.sourcePaths2.forEach {
+      sourceDeps.add(project.dependencies.create(it))
+    }
+
+    val targets = mutableListOf<Target>()
+    val defaultBuildDirectory = "${project.buildDir}/generated/src/java"
+    val outDirs = mutableListOf<String>()
+
+    extension.javaTarget?.let { it ->
+      val javaOut = it.outDirectory ?: defaultBuildDirectory
+      outDirs += javaOut
+      targets += Target.JavaTarget(
+          elements = it.elements ?: listOf("*"),
+          outDirectory = javaOut,
+          android = it.android,
+          androidAnnotations = it.androidAnnotations,
+          compact = it.compact
+      )
+    }
+    extension.kotlinTarget?.let { it ->
+      val kotlinOut = it.outDirectory ?: defaultBuildDirectory
+      outDirs += kotlinOut
+      targets += Target.KotlinTarget(
+          elements = it.elements ?: listOf("*"),
+          outDirectory = kotlinOut,
+          android = it.android,
+          javaInterop = it.javaInterop
+      )
+    }
+
+    val task = project.tasks.register("doWire", WireTask::class.java) {
+      it.sourceFolders = sourceSets.files
+      it.source(sourceSets)
+      it.sourcePaths = sourcePaths
+      it.protoPaths = protoPaths
+      it.roots = extension.roots?.asList() ?: emptyList()
+      it.prunes = extension.prunes?.asList() ?: emptyList()
+      it.rules = extension.rules
+      it.targets = targets
+      it.group = "wire"
+      it.description = "Generate Wire protocol buffer implementation for .proto files"
+    }
+
+    //project.tasks.named("compileKotlin").configure{ it.dependsOn(task) }
+    val compileTask = project.tasks.named("compileJava") as TaskProvider<JavaCompile>
+    compileTask.configure {
+      it.setSource(outDirs)
+      it.dependsOn(task)
+    }
   }
 
   private fun applyKotlin() {
