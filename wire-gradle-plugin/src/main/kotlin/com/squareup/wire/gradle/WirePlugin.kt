@@ -101,9 +101,8 @@ class WirePlugin : Plugin<Project> {
     variants.all {
       println("variant: ${it.name}")
 
-      val sourceSets = extension.sourceSets ?: project.files("src/main/proto")
-      val sourcePaths = extension.sourcePaths.asList()
-          .map { path -> "${project.rootDir}/$path" }
+      val sourceSets = extension.sourcePaths ?: project.files("src/main/proto")
+      val sourcePaths = extension.sourcePaths
       val protoPaths = extension.protoPaths?.asList() ?: sourcePaths
 
       val targets = mutableListOf<Target>()
@@ -134,10 +133,10 @@ class WirePlugin : Plugin<Project> {
 
       val taskName = "generate${it.name.capitalize()}Protos"
       val taskProvider = project.tasks.register(taskName, WireTask::class.java) {
-        it.sourceFolders = sourceSets.files
+        //it.sourceFolders = sourceSets.files
         it.source(sourceSets)
-        it.sourcePaths = sourcePaths
-        it.protoPaths = protoPaths
+//        it.sourcePaths = sourceSets
+//        it.protoPaths = protoPaths
         it.roots = extension.roots?.asList() ?: emptyList()
         it.prunes = extension.prunes?.asList() ?: emptyList()
         it.rules = extension.rules
@@ -156,16 +155,15 @@ class WirePlugin : Plugin<Project> {
     project: Project,
     extension: WireExtension
   ) {
-    val sourceSets = extension.sourceSets ?: project.files("src/main/proto")
-    val sourcePaths = extension.sourcePaths.asList()
-        .map { path -> "${project.rootDir}/$path" }
-    val protoPaths = extension.protoPaths?.asList() ?: sourcePaths
-
-    val sourceDeps = project.configurations.create("wireSource").dependencies
-
-    extension.sourcePaths2.forEach {
+    val sourceSets = extension.sourcePaths ?: project.files("src/main/proto")
+    val configuration = project.configurations.create("wireSource")
+    val sourceDeps = configuration.dependencies
+    sourceSets.forEach {
       sourceDeps.add(project.dependencies.create(it))
     }
+
+    val sourcePaths = extension.sourcePaths
+    val protoPaths = extension.protoPaths?.asList() ?: sourcePaths
 
     val targets = mutableListOf<Target>()
     val defaultBuildDirectory = "${project.buildDir}/generated/src/java"
@@ -194,8 +192,8 @@ class WirePlugin : Plugin<Project> {
     }
 
     val task = project.tasks.register("doWire", WireTask::class.java) {
-      it.sourceFolders = sourceSets.files
-      it.source(sourceSets)
+      it.sourceFolders = configuration.files
+      it.source(configuration)
       it.sourcePaths = sourcePaths
       it.protoPaths = protoPaths
       it.roots = extension.roots?.asList() ?: emptyList()

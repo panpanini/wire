@@ -16,20 +16,21 @@
 package com.squareup.wire.gradle;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 
 public class WireExtension {
-  private FileCollection sourceSets;
-  private String[] sourcePaths;
-  private String[] sourcePaths2;
+  private final Project project;
+
+  private List<Object> sourcePaths;
   private String[] protoPaths;
   private String[] roots;
   private String[] prunes;
@@ -38,37 +39,22 @@ public class WireExtension {
   private KotlinTarget kotlinTarget;
 
   public WireExtension(Project project) {
+    this.project = project;
+
+    sourcePaths = new ArrayList<>();
+
     ObjectFactory objectFactory = project.getObjects();
     javaTarget = objectFactory.newInstance(JavaTarget.class);
     kotlinTarget = objectFactory.newInstance(KotlinTarget.class);
   }
 
   @InputFiles
-  @Optional
-  public FileCollection getSourceSets() {
-    return sourceSets;
-  }
-
-  public void setSourceSets(FileCollection sourceSets) {
-    this.sourceSets = sourceSets;
-  }
-
-  @InputFiles
-  public String[] getSourcePaths() {
+  public List<Object> getSourcePaths() {
     return sourcePaths;
   }
 
-  public void setSourcePaths(String[] sourcePaths) {
-    this.sourcePaths = sourcePaths;
-  }
-
-  @InputFiles
-  public String[] getSourcePaths2() {
-    return sourcePaths2;
-  }
-
-  public void setSourcePaths2(String[] sourcePaths) {
-    this.sourcePaths2 = sourcePaths;
+  public void sourcePath(Object... sourcePaths) {
+    this.sourcePaths.addAll(Arrays.asList(sourcePaths));
   }
 
   @InputFiles
@@ -117,7 +103,7 @@ public class WireExtension {
     return javaTarget;
   }
 
-  public void javaTarget(Action<JavaTarget> action) {
+  public void java(Action<JavaTarget> action) {
     action.execute(javaTarget);
   }
 
@@ -127,7 +113,7 @@ public class WireExtension {
     return kotlinTarget;
   }
 
-  public void kotlinTarget(Action<KotlinTarget> action) {
+  public void kotlin(Action<KotlinTarget> action) {
     action.execute(kotlinTarget);
   }
 

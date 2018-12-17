@@ -14,6 +14,9 @@ buildscript {
 repositories {
   mavenLocal()
   mavenCentral()
+  maven {
+    url 'https://maven.global.square/artifactory/square-public'
+  }
 }
 
 apply plugin: 'application'
@@ -35,7 +38,9 @@ dependencies {
 }
 
 wire {
-  sourcePaths = ['src/main/proto']
+  sourcePath 'com.squareup.protos:all-protos:[20181215.172331,)'
+  sourcePath group: 'com.squareup.protos', name: 'all-protos', version: '[20181215.172331,)'
+  sourcePath fileTree('src/main/proto')
 
   // Keeps 'name' as the only field in 'Dinosaur'
   // roots = ['squareup.dinosaurs.Dinosaur#name']
@@ -46,8 +51,6 @@ wire {
   // Both roots and prunes in an external file
   // rules file("rules.txt")
 
-  sourcePaths2 'com.squareup.protos:all-protos:[20181215.172331,)'
-  sourcePaths2 'com.squareup.protos:all-protos:[20181215.172331,)'
   javaTarget {
     outDirectory = "${buildDir}/generated/src/java"
   }
