@@ -71,6 +71,7 @@ sealed class Target {
         override fun handle(type: Type) {
           val typeSpec = javaGenerator.generateType(type)
           val javaTypeName = javaGenerator.generatedTypeName(type)
+          println("javaTypeName: $javaTypeName")
           val javaFile = JavaFile.builder(javaTypeName.packageName(), typeSpec)
               .addFileComment("\$L",
                   WireCompiler.CODE_GENERATED_BY_WIRE)
