@@ -103,7 +103,7 @@ class WirePlugin : Plugin<Project> {
 
       val sourceSets = extension.sourcePaths ?: project.files("src/main/proto")
       val sourcePaths = extension.sourcePaths
-      val protoPaths = extension.protoPaths?.asList() ?: sourcePaths
+      val protoPaths = extension.protoPaths ?: sourceSets
 
       val targets = mutableListOf<Target>()
       val defaultBuildDirectory = "${project.buildDir}/generated/source/wire"
@@ -155,15 +155,19 @@ class WirePlugin : Plugin<Project> {
     project: Project,
     extension: WireExtension
   ) {
-    val sourceSets = extension.sourcePaths ?: project.files("src/main/proto")
-    val configuration = project.configurations.create("wireSource")
-    val sourceDeps = configuration.dependencies
-    sourceSets.forEach {
-      sourceDeps.add(project.dependencies.create(it))
+    val sourcePaths =
+        if (extension.sourcePaths.isNotEmpty()) extension.sourcePaths
+        else project.files("src/main/proto")
+    val sourceConfiguration = project.configurations.create("wireSource")
+    sourcePaths.forEach {
+      sourceConfiguration.dependencies.add(project.dependencies.create(it))
     }
 
-    val sourcePaths = extension.sourcePaths
-    val protoPaths = extension.protoPaths?.asList() ?: sourcePaths
+    val protoPaths = if (extension.protoPaths.isNotEmpty()) extension.protoPaths else sourcePaths
+    val protoConfiguration = project.configurations.create("wireProto")
+    protoPaths.forEach {
+      protoConfiguration.dependencies.add(project.dependencies.create(it))
+    }
 
     val targets = mutableListOf<Target>()
     val defaultBuildDirectory = "${project.buildDir}/generated/src/java"
@@ -192,10 +196,9 @@ class WirePlugin : Plugin<Project> {
     }
 
     val task = project.tasks.register("doWire", WireTask::class.java) {
-      it.sourceFolders = configuration.files
-      it.source(configuration)
-      it.sourcePaths = sourcePaths
-      it.protoPaths = protoPaths
+      it.source(sourceConfiguration)
+      it.sourcePaths = sourceConfiguration.files.map { project.relativePath(it.path); }
+      it.protoPaths = protoConfiguration.files.map { project.relativePath(it.path); }
       it.roots = extension.roots?.asList() ?: emptyList()
       it.prunes = extension.prunes?.asList() ?: emptyList()
       it.rules = extension.rules

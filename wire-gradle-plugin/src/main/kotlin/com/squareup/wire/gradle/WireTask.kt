@@ -25,7 +25,6 @@ import java.io.File
 open class WireTask : SourceTask() {
   @Input fun pluginVersion() = ""
 
-  lateinit var sourceFolders: Iterable<File>
   lateinit var sourcePaths: List<String>
   lateinit var protoPaths: List<String>
   lateinit var roots: List<String>

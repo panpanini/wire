@@ -31,7 +31,7 @@ public class WireExtension {
   private final Project project;
 
   private List<Object> sourcePaths;
-  private String[] protoPaths;
+  private List<Object> protoPaths;
   private String[] roots;
   private String[] prunes;
   private File rules;
@@ -42,6 +42,7 @@ public class WireExtension {
     this.project = project;
 
     sourcePaths = new ArrayList<>();
+    protoPaths = new ArrayList<>();
 
     ObjectFactory objectFactory = project.getObjects();
     javaTarget = objectFactory.newInstance(JavaTarget.class);
@@ -59,12 +60,12 @@ public class WireExtension {
 
   @InputFiles
   @Optional
-  public String[] getProtoPaths() {
+  public List<Object> getProtoPaths() {
     return protoPaths;
   }
 
-  public void setProtoPaths(String[] protoPaths) {
-    this.protoPaths = protoPaths;
+  public void protoPath(Object... protoPaths) {
+    this.protoPaths.addAll(Arrays.asList(protoPaths));
   }
 
   @Input

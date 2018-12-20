@@ -51,7 +51,7 @@ wire {
   // Both roots and prunes in an external file
   // rules file("rules.txt")
 
-  javaTarget {
+  java {
     outDirectory = "${buildDir}/generated/src/java"
   }
 }
