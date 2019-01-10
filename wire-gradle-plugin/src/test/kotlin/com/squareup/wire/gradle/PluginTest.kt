@@ -2,11 +2,13 @@ package com.squareup.wire.gradle
 
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 
 class PluginTest {
   @Test
+  @Ignore
   fun foo() {
     val fixtureRoot = File("..")
     val runner = GradleRunner.create()

@@ -151,4 +151,6 @@ internal fun ProtoFile.importPath(location: Location): String {
 internal fun ProtoFile.canonicalImportPath(location: Location): String {
   val filename = location.path().substringAfterLast('/')
   return packageName().replace('.', '/') + "/" + filename
+//  println("in ProtoFile.importPath -> filename: $filename")
+//  return (packageName() ?: "").replace('.', '/') + "/" + filename
 }

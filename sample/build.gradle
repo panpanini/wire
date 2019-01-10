@@ -53,5 +53,6 @@ wire {
 
   java {
     outDirectory = "${buildDir}/generated/src/java"
+//    roots = ['squareup.franklin.app.AppService']
   }
 }

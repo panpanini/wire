@@ -119,6 +119,7 @@ public class WireExtension {
   }
 
   static class JavaTarget {
+    @SuppressWarnings("RedundantModifier")
     @Inject public JavaTarget() {
     }
 
@@ -130,6 +131,7 @@ public class WireExtension {
   }
 
   static class KotlinTarget {
+    @SuppressWarnings("RedundantModifier")
     @Inject public KotlinTarget() {
     }
 

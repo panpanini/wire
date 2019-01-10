@@ -197,8 +197,8 @@ class WirePlugin : Plugin<Project> {
 
     val task = project.tasks.register("doWire", WireTask::class.java) {
       it.source(sourceConfiguration)
-      it.sourcePaths = sourceConfiguration.files.map { project.relativePath(it.path); }
-      it.protoPaths = protoConfiguration.files.map { project.relativePath(it.path); }
+      it.sourcePaths = sourceConfiguration.files.map { it.path }
+      it.protoPaths = protoConfiguration.files.map { it.path }
       it.roots = extension.roots?.asList() ?: emptyList()
       it.prunes = extension.prunes?.asList() ?: emptyList()
       it.rules = extension.rules
