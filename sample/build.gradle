@@ -39,7 +39,6 @@ dependencies {
 
 wire {
   sourcePath 'com.squareup.protos:all-protos:[20181215.172331,)'
-  sourcePath group: 'com.squareup.protos', name: 'all-protos', version: '[20181215.172331,)'
   sourcePath fileTree('src/main/proto')
 
   // Keeps 'name' as the only field in 'Dinosaur'

@@ -16,7 +16,9 @@
 package com.squareup.wire.schema
 
 import com.squareup.wire.ConsoleWireLogger
+import com.squareup.wire.WireException
 import com.squareup.wire.WireLogger
+import java.io.IOException
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 
@@ -203,5 +205,32 @@ data class WireRun(
     }
 
     return result
+  }
+
+  companion object {
+    @Throws(IOException::class)
+    @JvmStatic fun main(args: Array<String>) {
+      try {
+        val wireCompiler = WireRun(
+            sourcePath = listOf(
+                Location.get(
+                    "/Users/jrod/.gradle/caches/modules-2/files-2.1/com.squareup.protos/all-protos/20190301.010153/645918ca71f4e795b72ab87798d133e98c238494/all-protos-20190301.010153.jar"
+                ),
+                Location.get("src/main/proto")
+            ),
+            targets = listOf(Target.JavaTarget(outDirectory = "out")),
+            treeShakingRubbish = listOf(
+                "vitess.*",
+                "squareup.tracon.*",
+                "squareup.privacyvault.service.*"
+            )
+        )
+        wireCompiler.execute()
+      } catch (e: WireException) {
+        System.err.print("Fatal: ")
+        e.printStackTrace(System.err)
+        System.exit(1)
+      }
+    }
   }
 }

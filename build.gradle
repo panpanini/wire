@@ -160,3 +160,22 @@ tasks {
     dependsOn(plugin)
   }
 }
+
+configurations {
+  wire
+}
+
+dependencies {
+  wire project(':wire-compiler')
+}
+
+task generateJavaProtos(type: JavaExec) {
+  classpath = configurations.wire
+//  main = 'com.squareup.wire.WireCompiler'
+  main = 'com.squareup.wire.schema.WireRun'
+//  args = [
+//    '--proto_path=/Users/jrod/.gradle/caches/modules-2/files-2.1/com.squareup.protos/all-protos/20190108.123722/42f6ca1f39239a3c783ebba60ef1722753db55c7/all-protos-20190108.123722.jar',
+//    '--java_out=out',
+//    '--excludes=vitess.*,squareup.tracon.*,squareup.privacyvault.service.*'
+//  ]
+}
