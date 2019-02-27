@@ -17,10 +17,13 @@ package com.squareup.wire
 
 import com.squareup.wire.MockRouteGuideService.Action.ReceiveCall
 import com.squareup.wire.MockRouteGuideService.Action.ReceiveComplete
+import com.squareup.wire.MockRouteGuideService.Action.ReceiveError
 import com.squareup.wire.MockRouteGuideService.Action.ReceiveMessage
 import com.squareup.wire.MockRouteGuideService.Action.SendCompleted
 import com.squareup.wire.MockRouteGuideService.Action.SendMessage
-import kotlinx.coroutines.cancel
+import com.squareup.wire.MockRouteGuideService.Action.Delay
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -41,7 +44,7 @@ import java.util.concurrent.TimeUnit
 
 class GrpcTest {
   @JvmField @Rule val mockService = MockRouteGuideService()
-  @JvmField @Rule val timeout = Timeout(8, TimeUnit.SECONDS)
+  @JvmField @Rule val timeout = Timeout(8000, TimeUnit.SECONDS)
 
   private lateinit var grpcClient: GrpcClient
   private lateinit var routeGuideService: RouteGuide
@@ -73,6 +76,22 @@ class GrpcTest {
     runBlocking {
       val feature = routeGuideService.GetFeature(Point(latitude = 5, longitude = 6))
       assertThat(feature).isEqualTo(Feature(name = "tree at 5,6"))
+    }
+  }
+
+  @Test
+  fun cancelRequestResponse() {
+    mockService.enqueue(ReceiveCall("/routeguide.RouteGuide/GetFeature"))
+    mockService.enqueue(Delay(500, TimeUnit.MILLISECONDS))
+    mockService.enqueue(ReceiveError)
+
+    runBlocking {
+      val deferred = async {
+        routeGuideService.GetFeature(Point(latitude = 5, longitude = 6))
+      }
+      delay(100)
+      deferred.cancel()
+      mockService.awaitSuccess()
     }
   }
 
