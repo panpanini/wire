@@ -179,3 +179,7 @@ task generateJavaProtos(type: JavaExec) {
 //    '--excludes=vitess.*,squareup.tracon.*,squareup.privacyvault.service.*'
 //  ]
 }
+
+tasks.wrapper {
+  distributionType = Wrapper.DistributionType.ALL
+}
