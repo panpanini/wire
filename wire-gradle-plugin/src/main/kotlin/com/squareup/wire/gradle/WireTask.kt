@@ -17,6 +17,7 @@ package com.squareup.wire.gradle
 
 import com.squareup.wire.schema.Target
 import com.squareup.wire.schema.WireRun
+import com.squareup.wire.schema.Location
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
@@ -55,8 +56,8 @@ open class WireTask : SourceTask() {
     println("targets: $targets")
 
     val wireRun = WireRun(
-        sourcePath = sourcePaths,
-        protoPath = protoPaths,
+        sourcePath = sourcePaths.map { Location.get(it) },
+        protoPath = protoPaths.map { Location.get(it) },
         treeShakingRoots = if (roots.isEmpty()) includes else roots,
         treeShakingRubbish = if (prunes.isEmpty()) excludes else prunes,
         targets = targets
