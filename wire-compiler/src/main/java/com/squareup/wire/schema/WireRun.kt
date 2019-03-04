@@ -212,11 +212,54 @@ data class WireRun(
     @JvmStatic fun main(args: Array<String>) {
       try {
         val wireCompiler = WireRun(
+            // 1. PASS: if a jar, traverse the zip tree
+//            sourcePath = listOf(
+//                Location.get(
+//                    "/Users/jrod/.gradle/caches/modules-2/files-2.1/com.squareup.protos/all-protos/20190301.010153/645918ca71f4e795b72ab87798d133e98c238494/all-protos-20190301.010153.jar"
+//                )
+//            ),
+            // 2. PASS: if a directory, recursively scan all
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto")
+//            ),
+            // 3. PASS: can split between base and (import) path
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto", "squareup/geology/period.proto")
+//            ),
+            // 4. PASS: ...or not!
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto/squareup/geology/period.proto")
+//            ),
+            // 5. PASS: can refer to multiple
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto", "squareup/geology/period.proto"),
+//                Location.get("sample/src/main/proto", "squareup/dinosaurs/dinosaur.proto")
+//            ),
+            // 6. PASS: order doesn't matter, when split
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto", "squareup/dinosaurs/dinosaur.proto"),
+//                Location.get("sample/src/main/proto", "squareup/geology/period.proto")
+//            ),
+            // 7. FAIL: order matter when not split?
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto/squareup/dinosaurs/dinosaur.proto"),
+//                Location.get("sample/src/main/proto/squareup/geology/period.proto")
+//            ),
+            // 8. FAIL: nope, this doesn't work either...
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto/squareup/geology/period.proto"),
+//                Location.get("sample/src/main/proto/squareup/dinosaurs/dinosaur.proto")
+//            ),
+            // 9. FAIL: am i misunderstanding how proto path works?
+            // Exception in thread "main" com.squareup.wire.schema.SchemaException: unable to resolve squareup.geology.Period
+            //  for field period (sample/src/main/proto/squareup/dinosaurs/dinosaur.proto at 18:3)
+            //  in message squareup.dinosaurs.Dinosaur (sample/src/main/proto/squareup/dinosaurs/dinosaur.proto at 9:1)
+            //        at com.squareup.wire.schema.Linker.link(Linker.java:119)
             sourcePath = listOf(
-                Location.get(
-                    "/Users/jrod/.gradle/caches/modules-2/files-2.1/com.squareup.protos/all-protos/20190301.010153/645918ca71f4e795b72ab87798d133e98c238494/all-protos-20190301.010153.jar"
-                ),
-                Location.get("src/main/proto")
+                Location.get("sample/src/main/proto", "squareup/dinosaurs/dinosaur.proto")
+            ),
+            protoPath = listOf(
+                Location.get("sample/src/main/proto", "squareup/geology/period.proto")
             ),
             targets = listOf(Target.JavaTarget(outDirectory = "out")),
             treeShakingRubbish = listOf(
