@@ -16,7 +16,9 @@
 package com.squareup.wire.schema
 
 import com.squareup.wire.ConsoleWireLogger
+import com.squareup.wire.WireException
 import com.squareup.wire.WireLogger
+import java.io.IOException
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 
@@ -203,5 +205,72 @@ data class WireRun(
     }
 
     return result
+  }
+
+  companion object {
+    @Throws(IOException::class)
+    @JvmStatic fun main(args: Array<String>) {
+      try {
+        val wireCompiler = WireRun(
+            // 1. PASS: if a jar, traverse the zip tree
+//            sourcePath = listOf(
+//                Location.get(
+//                    "/Users/jrod/.gradle/caches/modules-2/files-2.1/com.squareup.protos/all-protos/20190301.010153/645918ca71f4e795b72ab87798d133e98c238494/all-protos-20190301.010153.jar"
+//                )
+//            ),
+            // 2. PASS: if a directory, recursively scan all
+            sourcePath = listOf(
+                Location.get("sample/src/main/proto")
+            ),
+            // 3. PASS: can split between base and (import) path
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto", "squareup/geology/period.proto")
+//            ),
+            // 4. PASS: ...or not!
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto/squareup/geology/period.proto")
+//            ),
+            // 5. PASS: can refer to multiple
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto", "squareup/geology/period.proto"),
+//                Location.get("sample/src/main/proto", "squareup/dinosaurs/dinosaur.proto")
+//            ),
+            // 6. PASS: order doesn't matter, when split
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto", "squareup/dinosaurs/dinosaur.proto"),
+//                Location.get("sample/src/main/proto", "squareup/geology/period.proto")
+//            ),
+            // 7. PASS: proto path
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto", "squareup/dinosaurs/dinosaur.proto")
+//            ),
+//            protoPath = listOf(
+//                Location.get("sample/src/main/proto", "squareup/geology/period.proto")
+//            ),
+            // 8. FAIL: order matter when not split?
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto/squareup/dinosaurs/dinosaur.proto"),
+//                Location.get("sample/src/main/proto/squareup/geology/period.proto")
+//            ),
+            // 9. FAIL: nope, this doesn't work either...
+//            sourcePath = listOf(
+//                Location.get("sample/src/main/proto/squareup/geology/period.proto"),
+//                Location.get("sample/src/main/proto/squareup/dinosaurs/dinosaur.proto")
+//            ),
+
+            targets = listOf(Target.JavaTarget(outDirectory = "sample/build/generated/src/main/java")),
+            treeShakingRubbish = listOf(
+                "vitess.*",
+                "squareup.tracon.*",
+                "squareup.privacyvault.service.*"
+            )
+        )
+        wireCompiler.execute()
+      } catch (e: WireException) {
+        System.err.print("Fatal: ")
+        e.printStackTrace(System.err)
+        System.exit(1)
+      }
+    }
   }
 }

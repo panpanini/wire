@@ -184,6 +184,19 @@ tasks {
   }
 }
 
+configurations {
+  wire
+}
+
+dependencies {
+  wire project(':wire-compiler')
+}
+
+task generateJavaProtos(type: JavaExec) {
+  classpath = configurations.wire
+  main = 'com.squareup.wire.schema.WireRun'
+}
+
 tasks.wrapper {
   distributionType = Wrapper.DistributionType.ALL
 }
