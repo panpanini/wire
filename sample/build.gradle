@@ -44,7 +44,11 @@ wire {
 //      'src/main/proto/squareup/dinosaurs/dinosaur.proto',
 //      'src/main/proto/squareup/geology/period.proto',
 //  )
-
+  foo {
+    srcDir 'src'
+    include 'net/sbyrne/appleta/**'
+  }
+  
   // Keeps 'name' as the only field in 'Dinosaur'
   // roots = ['squareup.dinosaurs.Dinosaur#name']
 

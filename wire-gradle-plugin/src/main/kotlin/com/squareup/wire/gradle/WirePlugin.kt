@@ -22,17 +22,22 @@ import com.squareup.wire.schema.Target
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.file.SourceDirectorySetFactory
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.plugin.KotlinBasePluginWrapper
 import java.io.File
+import javax.inject.Inject
 import com.android.build.gradle.BasePlugin as AndroidBasePlugin
 
-class WirePlugin : Plugin<Project> {
+class WirePlugin @Inject constructor(private val sourceDirectorySetFactory: SourceDirectorySetFactory) :
+    Plugin<Project> {
   override fun apply(project: Project) {
-    val extension = project.extensions.create("wire", WireExtension::class.java, project)
+    val extension = project.extensions.create(
+        "wire", WireExtension::class.java, project, sourceDirectorySetFactory
+    )
 
     var kotlin = false
     var android = false

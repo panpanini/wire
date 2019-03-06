@@ -15,21 +15,25 @@
  */
 package com.squareup.wire.gradle;
 
+import groovy.lang.Closure;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
+import org.gradle.util.ConfigureUtil;
 
 public class WireExtension {
   private final Project project;
+  private SourceDirectorySet sourceSets;
 
   private List<Object> sourcePaths;
   private List<Object> protoPaths;
@@ -39,8 +43,9 @@ public class WireExtension {
   private JavaTarget javaTarget;
   private KotlinTarget kotlinTarget;
 
-  public WireExtension(Project project) {
+  public WireExtension(Project project, SourceDirectorySetFactory sourceDirectorySetFactory) {
     this.project = project;
+    this.sourceSets = sourceDirectorySetFactory.create("proto", "Proto source");
 
     sourcePaths = new ArrayList<>();
     protoPaths = new ArrayList<>();
@@ -129,6 +134,13 @@ public class WireExtension {
 
   public void kotlin(Action<KotlinTarget> action) {
     action.execute(kotlinTarget);
+  }
+
+  public SourceDirectorySet foo(Closure<SourceDirectorySet> action) {
+    SourceDirectorySet configure = ConfigureUtil.configure(action, sourceSets);
+    System.out.println("srcDirs: " + configure.getSrcDirs());
+    System.out.println("includes: " + configure.getIncludes());
+    return configure;
   }
 
   static class JavaTarget {
